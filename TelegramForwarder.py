@@ -1,5 +1,6 @@
 import time
 import asyncio
+import os  # Add this import for file operations
 from telethon.sync import TelegramClient
 from telethon import errors
 
@@ -59,11 +60,24 @@ class TelegramForwarder:
 
                         print("Message forwarded")
                 else:
+                    if message.text:
                         # Forward the message to the destination channel
                         await self.client.send_message(destination_channel_id, message.text)
-
                         print("Message forwarded")
 
+                # Check if the message contains a photo
+                if message.photo:
+                    print("Photo received. Downloading...")
+                    photo_path = await self.client.download_media(message.photo)
+                    print(f"Photo downloaded to {photo_path}")
+
+                    # Send the photo to the destination channel
+                    await self.client.send_file(destination_channel_id, photo_path)
+                    print("Photo forwarded")
+
+                    # Delete the photo from the local folder
+                    os.remove(photo_path)
+                    print(f"Photo deleted from local folder: {photo_path}")
 
                 # Update the last message ID
                 last_message_id = max(last_message_id, message.id)
